@@ -54,53 +54,32 @@
 
 <script>
 import { todoStorage, filters } from './utils';
-import { ref, reactive, computed, watch } from '@vue/composition-api';
+import filterHook from './hooks/filterHook';
+import todoHook from './hooks/todoHook';
+import { reactive, computed, watch } from '@vue/composition-api';
 
 export default {
   name: 'app',
   setup() {
-    let newTodo = ref('');
-    const visibility = ref('all');
     const state = reactive({ todos: todoStorage.fetch() });
+    const {
+      visibility,
+      filterAll,
+      filterActive,
+      filterCompleted,
+    } = filterHook();
+
+    const { newTodo, addTodo, removeTodo, removeCompleted } = todoHook(state);
+
     const filteredTodos = computed(() => {
       return filters[visibility.value](state.todos);
     });
+
     const remaining = computed(() => {
       return filters.active(state.todos).length;
     });
 
     watch(() => todoStorage.save(state.todos));
-
-    const addTodo = () => {
-      var value = newTodo && newTodo.value.trim();
-      if (!value) {
-        return;
-      }
-      state.todos.push({
-        id: todoStorage.uid++,
-        title: value,
-        completed: false,
-      });
-      newTodo.value = '';
-    };
-
-    const removeTodo = todo => {
-      state.todos.splice(state.todos.indexOf(todo), 1);
-    };
-
-    const removeCompleted = () => {
-      state.todos = filters.active(state.todos);
-    };
-
-    const filterAll = () => {
-      visibility.value = 'all';
-    };
-    const filterActive = () => {
-      visibility.value = 'active';
-    };
-    const filterCompleted = () => {
-      visibility.value = 'completed';
-    };
 
     return {
       newTodo,

@@ -55,13 +55,22 @@
 <script>
 import { todoStorage, filters } from './utils';
 import filterMixin from './mixins/filterMixin';
+import { ref, reactive } from '@vue/composition-api';
+
 export default {
   name: 'app',
-  data: () => ({
-    todos: todoStorage.fetch(),
-    newTodo: '',
-    visibility: 'all',
-  }),
+  setup() {
+    const newTodo = ref('');
+    const visibility = ref('all');
+    const todos = reactive(todoStorage.fetch());
+
+    return {
+      newTodo,
+      visibility,
+      todos,
+    };
+  },
+
   mixins: [filterMixin],
 
   // watch todos change for localStorage persistence

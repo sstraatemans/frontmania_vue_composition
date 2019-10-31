@@ -55,7 +55,7 @@
 <script>
 import { todoStorage, filters } from './utils';
 import filterMixin from './mixins/filterMixin';
-import { ref, reactive } from '@vue/composition-api';
+import { ref, reactive, computed } from '@vue/composition-api';
 
 export default {
   name: 'app',
@@ -63,11 +63,19 @@ export default {
     const newTodo = ref('');
     const visibility = ref('all');
     const todos = reactive(todoStorage.fetch());
+    const filteredTodos = computed(() => {
+      return filters[visibility.value](todos);
+    });
+    const remaining = computed(() => {
+      return filters.active(todos).length;
+    });
 
     return {
       newTodo,
       visibility,
       todos,
+      filteredTodos,
+      remaining,
     };
   },
 
@@ -79,17 +87,6 @@ export default {
       handler: function(todos) {
         todoStorage.save(todos);
       },
-    },
-  },
-
-  // computed properties
-  // http://vuejs.org/guide/computed.html
-  computed: {
-    filteredTodos: function() {
-      return filters[this.visibility](this.todos);
-    },
-    remaining: function() {
-      return filters.active(this.todos).length;
     },
   },
 

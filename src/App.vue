@@ -62,18 +62,18 @@ export default {
   setup() {
     const newTodo = ref('');
     const visibility = ref('all');
-    const todos = reactive(todoStorage.fetch());
+    const state = reactive({ todos: todoStorage.fetch() });
     const filteredTodos = computed(() => {
-      return filters[visibility.value](todos);
+      return filters[visibility.value](state.todos);
     });
     const remaining = computed(() => {
-      return filters.active(todos).length;
+      return filters.active(state.todos).length;
     });
 
     return {
       newTodo,
       visibility,
-      todos,
+      todos: state.todos,
       filteredTodos,
       remaining,
     };

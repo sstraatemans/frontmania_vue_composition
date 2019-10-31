@@ -54,27 +54,29 @@
 
 <script>
 import { todoStorage, filters } from './utils';
-import { ref, reactive, computed } from '@vue/composition-api';
+import { ref, reactive, computed, watch } from '@vue/composition-api';
 
 export default {
   name: 'app',
   setup() {
     let newTodo = ref('');
     const visibility = ref('all');
-    let todos = reactive(todoStorage.fetch());
+    const state = reactive({ todos: todoStorage.fetch() });
     const filteredTodos = computed(() => {
-      return filters[visibility.value](todos);
+      return filters[visibility.value](state.todos);
     });
     const remaining = computed(() => {
-      return filters.active(todos).length;
+      return filters.active(state.todos).length;
     });
+
+    watch(() => todoStorage.save(state.todos));
 
     const addTodo = () => {
       var value = newTodo && newTodo.value.trim();
       if (!value) {
         return;
       }
-      todos.push({
+      state.todos.push({
         id: todoStorage.uid++,
         title: value,
         completed: false,
@@ -83,11 +85,11 @@ export default {
     };
 
     const removeTodo = todo => {
-      todos.splice(todos.indexOf(todo), 1);
+      state.todos.splice(state.todos.indexOf(todo), 1);
     };
 
     const removeCompleted = () => {
-      todos = filters.active(todos);
+      state.todos = filters.active(state.todos);
     };
 
     const filterAll = () => {
@@ -103,7 +105,7 @@ export default {
     return {
       newTodo,
       visibility,
-      todos,
+      todos: state.todos,
       filteredTodos,
       remaining,
       addTodo,
@@ -114,18 +116,5 @@ export default {
       filterCompleted,
     };
   },
-
-  // watch todos change for localStorage persistence
-  watch: {
-    todos: {
-      handler: function(todos) {
-        todoStorage.save(todos);
-      },
-    },
-  },
-
-  // methods that implement data logic.
-  // note there's no DOM manipulation here at all.
-  methods: {},
 };
 </script>

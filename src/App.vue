@@ -54,15 +54,14 @@
 
 <script>
 import { todoStorage, filters } from './utils';
-import filterMixin from './mixins/filterMixin';
 import { ref, reactive, computed } from '@vue/composition-api';
 
 export default {
   name: 'app',
   setup() {
-    const newTodo = ref('');
+    let newTodo = ref('');
     const visibility = ref('all');
-    const todos = reactive(todoStorage.fetch());
+    let todos = reactive(todoStorage.fetch());
     const filteredTodos = computed(() => {
       return filters[visibility.value](todos);
     });
@@ -70,16 +69,51 @@ export default {
       return filters.active(todos).length;
     });
 
+    const addTodo = () => {
+      var value = newTodo && newTodo.value.trim();
+      if (!value) {
+        return;
+      }
+      todos.push({
+        id: todoStorage.uid++,
+        title: value,
+        completed: false,
+      });
+      newTodo.value = '';
+    };
+
+    const removeTodo = todo => {
+      todos.splice(todos.indexOf(todo), 1);
+    };
+
+    const removeCompleted = () => {
+      todos = filters.active(todos);
+    };
+
+    const filterAll = () => {
+      visibility.value = 'all';
+    };
+    const filterActive = () => {
+      visibility.value = 'active';
+    };
+    const filterCompleted = () => {
+      visibility.value = 'completed';
+    };
+
     return {
       newTodo,
       visibility,
       todos,
       filteredTodos,
       remaining,
+      addTodo,
+      removeTodo,
+      removeCompleted,
+      filterAll,
+      filterActive,
+      filterCompleted,
     };
   },
-
-  mixins: [filterMixin],
 
   // watch todos change for localStorage persistence
   watch: {
@@ -92,27 +126,6 @@ export default {
 
   // methods that implement data logic.
   // note there's no DOM manipulation here at all.
-  methods: {
-    addTodo: function() {
-      var value = this.newTodo && this.newTodo.trim();
-      if (!value) {
-        return;
-      }
-      this.todos.push({
-        id: todoStorage.uid++,
-        title: value,
-        completed: false,
-      });
-      this.newTodo = '';
-    },
-
-    removeTodo: function(todo) {
-      this.todos.splice(this.todos.indexOf(todo), 1);
-    },
-
-    removeCompleted: function() {
-      this.todos = filters.active(this.todos);
-    },
-  },
+  methods: {},
 };
 </script>

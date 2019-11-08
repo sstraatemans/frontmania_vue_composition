@@ -1,8 +1,17 @@
 import { todoStorage, filters } from './../utils';
-import { ref } from '@vue/composition-api';
+import { ref, reactive, computed, watch } from '@vue/composition-api';
 
-export default state => {
+export default visibility => {
+  const state = reactive({ todos: todoStorage.fetch() });
   let newTodo = ref('');
+  const filteredTodos = computed(() => {
+    return filters[visibility.value](state.todos);
+  });
+
+  const remaining = computed(() => {
+    return filters.active(state.todos).length;
+  });
+
   const addTodo = () => {
     var value = newTodo && newTodo.value.trim();
     if (!value) {
@@ -24,10 +33,14 @@ export default state => {
     state.todos = filters.active(state.todos);
   };
 
+  watch(() => todoStorage.save(state.todos));
+
   return {
     newTodo,
     addTodo,
     removeTodo,
     removeCompleted,
+    filteredTodos,
+    remaining,
   };
 };

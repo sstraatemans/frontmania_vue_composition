@@ -11,7 +11,7 @@
         @keyup.enter="addTodo"
       />
     </header>
-    <section class="main" v-show="todos.length" v-cloak>
+    <section class="main" v-show="filteredTodos.length" v-cloak>
       <ul class="todo-list">
         <li
           v-for="todo in filteredTodos"
@@ -27,7 +27,7 @@
         </li>
       </ul>
     </section>
-    <footer class="footer" v-show="todos.length" v-cloak>
+    <footer class="footer" v-show="filteredTodos.length" v-cloak>
       <span class="todo-count">
         <strong>{{ remaining }}</strong>
         items left
@@ -46,45 +46,38 @@
       <button
         class="clear-completed"
         @click="removeCompleted"
-        v-show="todos.length > remaining"
+        v-show="filteredTodos.length > remaining"
       >Clear completed</button>
     </footer>
   </section>
 </template>
 
 <script>
-import { todoStorage, filters } from './utils';
-import filterHook from './hooks/filterHook';
-import todoHook from './hooks/todoHook';
-import { reactive, computed, watch } from '@vue/composition-api';
+import useFilter from './hooks/useFilter';
+import useTodo from './hooks/useTodo';
 
 export default {
   name: 'app',
   setup() {
-    const state = reactive({ todos: todoStorage.fetch() });
     const {
       visibility,
       filterAll,
       filterActive,
       filterCompleted,
-    } = filterHook();
+    } = useFilter();
 
-    const { newTodo, addTodo, removeTodo, removeCompleted } = todoHook(state);
-
-    const filteredTodos = computed(() => {
-      return filters[visibility.value](state.todos);
-    });
-
-    const remaining = computed(() => {
-      return filters.active(state.todos).length;
-    });
-
-    watch(() => todoStorage.save(state.todos));
+    const {
+      newTodo,
+      addTodo,
+      removeTodo,
+      removeCompleted,
+      filteredTodos,
+      remaining,
+    } = useTodo(visibility);
 
     return {
       newTodo,
       visibility,
-      todos: state.todos,
       filteredTodos,
       remaining,
       addTodo,
